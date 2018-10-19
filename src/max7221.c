@@ -33,10 +33,15 @@ void max7221_init(void)
 	max7221_write_reg(MAX7221_DECODE_MODE, 0x00); //no decoding!
 	_delay_ms(1);
 	max7221_write_reg(MAX7221_SCAN_LIMIT, 0x7); //all digits
-	_delay_ms(1);
-	max7221_write_reg(MAX7221_INTENSITY, 255);
-	_delay_ms(1);
+	_delay_ms(5);
+	//Explicitly shutting down and restarting, also disabling test mode. This might do the trick
+	max7221_write_reg(MAX7221_TEST, 0x0);
+	_delay_ms(5);
+	max7221_write_reg(MAX7221_SHUTDOWN, 0x0);
+	_delay_ms(5);
 	max7221_write_reg(MAX7221_SHUTDOWN, 0x1);
+	_delay_ms(5);
+	max7221_write_reg(MAX7221_INTENSITY, 255);
 
 	for(uint8_t i=0; i < 8; i++)
 	{

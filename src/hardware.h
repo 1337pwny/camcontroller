@@ -45,23 +45,24 @@
 	} storekey_t;
 
 	typedef enum {
-		ROTSEL_NO_KEY = 255,
-		ROTSEL1 = 0,
-		ROTSEL2 = 1,
-		ROTSEL3 = 2,
-		ROTSEL4 = 3
-	} rotselkey_t;
+        FSEL_NO_KEY = 255,
+        FSEL1 = 0,
+        FSEL2 = 1,
+        FSEL3 = 2,
+        FSEL4 = 3
+    } fselkey_t;
 
 	void hardware_tick(void);
 	void hardware_init(void);
 	softkey_t get_softkeys(void);
 	camkey_t get_camkeys(void);
 	storekey_t get_storekeys(void);
-	rotselkey_t get_rotselkeys(void);
+    fselkey_t get_fselkeys(void);
 	uint8_t get_cam1_key(void);
 	void set_store_led(uint8_t led);
 	void reset_store_led(uint8_t led);
 	void set_cam_leds(uint8_t active);
+    void set_fsel_leds(uint8_t function);
 	void set_rotarys_leds(uint8_t number);
 	uint8_t get_matrix_line(uint8_t line);
 

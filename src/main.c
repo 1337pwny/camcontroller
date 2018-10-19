@@ -16,6 +16,7 @@
 #include "menu_lock.h"
 #include "menu_cam_ctrl.h"
 #include "globals.h"
+#include "cccb.h"
 
 
 
@@ -43,7 +44,7 @@ const cam_data_t cams_default[CAM_COUNT] PROGMEM =
 {
 	{
 		.cam_active = 1,
-		.base_addr = 0,
+		.base_addr = 1,
 		.pan_address = 0,
 		.tilt_address = 2,
 		.speed_address = 4,
@@ -62,7 +63,7 @@ const cam_data_t cams_default[CAM_COUNT] PROGMEM =
 	},	
 	{
 		.cam_active = 1,
-		.base_addr = 16,
+		.base_addr = 17,
 		.pan_address = 0,
 		.tilt_address = 2,
 		.speed_address = 4,
@@ -81,7 +82,7 @@ const cam_data_t cams_default[CAM_COUNT] PROGMEM =
 	},
 	{
 		.cam_active = 1,
-		.base_addr = 32,
+		.base_addr = 33,
 		.pan_address = 0,
 		.tilt_address = 2,
 		.speed_address = 4,
@@ -99,7 +100,7 @@ const cam_data_t cams_default[CAM_COUNT] PROGMEM =
 		.power_state = 1 
 	},
 	{
-		.cam_active = 0,
+        .cam_active = 1,
 		.base_addr = 0xFFFF,
 		.pan_address = 0xFFFF,
 		.tilt_address = 0xFFFF,
@@ -115,7 +116,9 @@ const cam_data_t cams_default[CAM_COUNT] PROGMEM =
 		.store_pan = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},
 		.store_tilt= { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},
 		.button_state = 0,
-		.power_state = 1 
+        .power_state = 1,
+        .focus = 500,
+        .iris=0
 	} 
 };
 
@@ -140,20 +143,33 @@ int main (void)
 	}
 	else
 	{
-		if(lock_active==255)
+		if(lock_active==255 || get_cam1_key())
 			unlock_system();
 		set_menu(MENU_SPLASH);
 	}
 
-//	dmx_init();
+	dmx_init();
+    cccb_init();
 	ADC_Init();
 	rotary_init();
 //
 	send_switch();
 
 	set_cam_leds(active_cam);
-	uint16_t blink_counter=0;
 
+	for(uint8_t i=0; i < CAM_COUNT; i++)
+	{
+		if(cams[i].cam_active)
+		{
+			write_dmx(cams[i].base_addr-1 + cams[i].pan_address, cams[i].pan);
+			write_dmx(cams[i].base_addr-1 + cams[i].tilt_address, cams[i].tilt);
+			write_dmx(cams[i].base_addr-1 + cams[i].speed_address, cams[i].speed);
+			send_switch_state(i);
+		}
+	}
+
+
+	uint16_t blink_counter=0;
 	uint8_t loop=0;
 
 	while(1)
@@ -187,14 +203,17 @@ int main (void)
 				for(int i=0; i < STORE_COUNT; i++)
 					set_store_led(i);
 			}
-	
 
 			
 			loop=0;
+              cccb_run();
 		}
 		
+
+
 		hardware_tick();
 		rotary_tick();
+
 		//awkward delay here.. should be replaced by a timer. But it works, DMX is interrupt-driven
 		_delay_ms(0.5);
 	}
@@ -228,7 +247,7 @@ void process_inputs(void)
 
 
 
-	//Change the active cam
+    //Change the activ  e cam
 	switch(keys)
 	{
 		case CAM1: active_cam = cams[0].cam_active ? 0 : active_cam; break;
@@ -245,6 +264,10 @@ void process_inputs(void)
 		set_cam_leds(active_cam);
 
 		update_leds();
+
+
+        active_rotary_funtion=0;
+        set_fsel_leds(0 );
 		
 
 		//main screen
@@ -294,7 +317,7 @@ void process_inputs(void)
 	//fetch store key selection from hardware
 	storekey_t store = get_storekeys();
 
-	if(store != STORE_NO_KEY)
+    if(store != STORE_NO_KEY)
 	{
 		uint8_t store_id=0;
 
@@ -338,9 +361,9 @@ void process_inputs(void)
 	//if tilt or pan changed
 	
 	//write values to DMX
-	write_dmx(cams[active_cam].base_addr + cams[active_cam].pan_address, cams[active_cam].pan);
-	write_dmx(cams[active_cam].base_addr + cams[active_cam].tilt_address, cams[active_cam].tilt);
-	write_dmx(cams[active_cam].base_addr + cams[active_cam].speed_address, cams[active_cam].speed);
+	write_dmx(cams[active_cam].base_addr-1 + cams[active_cam].pan_address, cams[active_cam].pan);
+	write_dmx(cams[active_cam].base_addr-1 + cams[active_cam].tilt_address, cams[active_cam].tilt);
+	write_dmx(cams[active_cam].base_addr-1 + cams[active_cam].speed_address, cams[active_cam].speed);
 
 	//update main menu
 	if(old_tilt != cams[active_cam].tilt || old_pan != cams[active_cam].pan)
@@ -349,13 +372,31 @@ void process_inputs(void)
 			main_show();
 	}
 
-	rotselkey_t rotsel = get_rotselkeys();
+    fselkey_t fsel = get_fselkeys();
 
-	if(rotsel != ROTSEL_NO_KEY)
+    if(fsel != FSEL_NO_KEY)
 	{
+        if(active_cam!=3)
+        {
+            set_fsel_leds(0);
+            active_rotary_funtion=0;
+        }
+        else
+        {
+            switch(fsel)
+            {
+            case FSEL1: active_rotary_funtion=0; break;
+            case FSEL2: active_rotary_funtion=1; break;
+            case FSEL3: active_rotary_funtion=2; break;
+            case FSEL4: active_rotary_funtion=3; break;
+            }
 
+            set_fsel_leds(fsel);
+        }
 
-		
+        if(active_menu==MENU_MAIN)
+            main_init();
+
 	}
 }
 
@@ -405,6 +446,6 @@ void send_switch_state(uint8_t cam)
 		dmx=255;
 
 
-	write_dmx(cams[cam].base_addr + cams[cam].switch_address, dmx);
+	write_dmx(cams[cam].base_addr-1 + cams[cam].switch_address, dmx);
 }
 

@@ -40,7 +40,7 @@ const __flash cam_setup_parameters_t cam_setup_parameters[] =
 		.name = "base_addr           ",
 		.type = type_uint16,
 		.offset = offsetof(cam_data_t, base_addr),
-		.min = 0,
+		.min = 1,
 		.max = 512
 	},
 	{

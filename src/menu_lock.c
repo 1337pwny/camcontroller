@@ -10,6 +10,7 @@ uint8_t code_eeprom[4] EEMEM;
 
 extern void lock_system(void);    //Functions from main
 extern void unlock_system(void);  //Functions from main
+extern void save_data(void);
 static void lock_pressed(uint8_t n);
 
 void lock_load(void)
@@ -67,6 +68,7 @@ static void lock_pressed(uint8_t n)
 			{
 				code[i]=numbers[i];
 				set_menu(MENU_GENERAL_SETUP);
+				save_data();
 			}
 		}
 		else

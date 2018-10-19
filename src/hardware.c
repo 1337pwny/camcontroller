@@ -34,6 +34,12 @@
 #define SOFTKEY_3 !(button_states[2]&(1<<SOFTKEY_POS))
 #define SOFTKEY_4 !(button_states[3]&(1<<SOFTKEY_POS))
 
+#define FSELKEY_POS 7
+#define FSELKEY_1 !(button_states[0]&(1<<FSELKEY_POS))
+#define FSELKEY_2 !(button_states[1]&(1<<FSELKEY_POS))
+#define FSELKEY_3 !(button_states[2]&(1<<FSELKEY_POS))
+#define FSELKEY_4 !(button_states[3]&(1<<FSELKEY_POS))
+
 #define ROT_PUSH_PORT PORTE
 #define ROT_PUSH_PIN PINE
 #define ROT_PUSH_DDR DDRE
@@ -49,6 +55,10 @@
 #define LED_STORE_3 2,6
 #define LED_STORE_4 4,6
 
+#define LED_FSEL_1 3,7
+#define LED_FSEL_2 7,7
+#define LED_FSEL_3 2,7
+#define LED_FSEL_4 4,7
 
 static uint8_t button_states[4];
 
@@ -227,7 +237,7 @@ softkey_t get_softkeys(void)
 		if(old_rot==0)
 		{
 			old_rot=1;
-			//return ROT;
+			return ROT;
 		}
 	}
 	else
@@ -235,7 +245,7 @@ softkey_t get_softkeys(void)
 		if(old_rot==1)
 		{
 			old_rot=0;
-			//return ROT_R;
+			return ROT_R;
 		}
 	}
 
@@ -256,9 +266,17 @@ storekey_t get_storekeys(void)
 	return STORE_NO_KEY;
 }
 
-rotselkey_t get_rotselkeys(void)
+fselkey_t get_fselkeys(void)
 {
-	return ROTSEL1;
+    if( FSELKEY_1)
+        return FSEL1;
+    if( FSELKEY_2)
+        return FSEL2;
+    if( FSELKEY_3)
+        return FSEL3;
+    if( FSELKEY_4)
+        return FSEL4;
+    return FSEL_NO_KEY;
 }
 
 void set_store_led(uint8_t led)
@@ -312,8 +330,8 @@ void set_cam_leds(uint8_t active)
 
 void set_rotarys_leds(uint8_t number)
 {
-	static uint8_t cathodes[] = { 4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3};
-	static uint8_t anodes[]   = { 4,4,4,4,7,7,7,7,3,3,3,3,2,2,2,2,0,0,0,0,5,5,5,5,1,1,1,1,6,6,6,6};
+    static const uint8_t cathodes[] = { 4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3};
+    static const uint8_t anodes[]   = { 4,4,4,4,7,7,7,7,3,3,3,3,2,2,2,2,0,0,0,0,5,5,5,5,1,1,1,1,6,6,6,6};
 
 	uint8_t i=0;
 	for(i=0; i < number; i++)
@@ -335,3 +353,30 @@ uint8_t get_matrix_line(uint8_t line)
 }
 
 
+
+void set_fsel_leds(uint8_t function)
+{
+    switch(function)
+    {
+        case 0: max7221_set_led(LED_FSEL_1);
+                max7221_reset_led(LED_FSEL_2);
+                max7221_reset_led(LED_FSEL_3);
+                max7221_reset_led(LED_FSEL_4);
+        break;
+        case 1: max7221_reset_led(LED_FSEL_1);
+                max7221_set_led(LED_FSEL_2);
+                max7221_reset_led(LED_FSEL_3);
+                max7221_reset_led(LED_FSEL_4);
+        break;
+        case 2: max7221_reset_led(LED_FSEL_1);
+                max7221_reset_led(LED_FSEL_2);
+                max7221_set_led(LED_FSEL_3);
+                max7221_reset_led(LED_FSEL_4);
+        break;
+        case 3: max7221_reset_led(LED_FSEL_1);
+                max7221_reset_led(LED_FSEL_2);
+                max7221_reset_led(LED_FSEL_3);
+                max7221_set_led(LED_FSEL_4);
+        break;
+    }
+}

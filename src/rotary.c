@@ -123,11 +123,11 @@ void rotary_process(void)
 
 static void calc_number_of_leds(int32_t tmp)
 {
-	uint16_t divisor = (current_config->max-current_config->min+1);
+	uint16_t divisor = (current_config->max-current_config->min);
 
 	if(divisor==0)
 		divisor=1;
-	uint8_t number_of_leds = (32.0 / (current_config->max-current_config->min+1)) * (float)tmp;
+	uint8_t number_of_leds = (32.0 / divisor) * (float)tmp;
 
 	if(number_of_leds>32)
 		number_of_leds=32;

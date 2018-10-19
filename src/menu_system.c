@@ -6,6 +6,7 @@
 #include "menu_cam_ctrl.h"
 #include "menu_all_power.h"
 #include "menu_hardware.h"
+#include "menu_bmmcc.h"
 #include "lcd.h"
 #include "hardware.h"
 
@@ -16,15 +17,15 @@ extern void load_default(void);
 extern void update_leds(void);
 extern void lock_system(void); 
 
-static const char MENU_SPLASH_L1[] PROGMEM			= "DragonVideo         ";
-static const char MENU_SPLASH_L2[] PROGMEM			= "By Karrn            ";
-static const char MENU_SPLASH_L3[] PROGMEM			= "Cam controller      ";
-static const char MENU_SPLASH_L4[] PROGMEM			= "                2017";
+static const char MENU_SPLASH_L1[] PROGMEM			= "StreamingFurs       ";
+static const char MENU_SPLASH_L2[] PROGMEM			= "CaracalCamController";
+static const char MENU_SPLASH_L3[] PROGMEM			= "By Karrn            ";
+static const char MENU_SPLASH_L4[] PROGMEM			= "                2018";
 
 static const char MENU_MAIN_L1[] PROGMEM			= "                    ";
 static const char MENU_MAIN_L2[] PROGMEM			= "                    ";
 static const char MENU_MAIN_L3[] PROGMEM			= "                    ";
-static const char MENU_MAIN_L4[] PROGMEM			= "STORE          SETUP";
+static const char MENU_MAIN_L4[] PROGMEM			= "STORE           MENU";
 
 static const char MENU_SETUP_L1[] PROGMEM			= "Select cam          ";
 static const char MENU_SETUP_L2[] PROGMEM			= "                    ";
@@ -34,7 +35,7 @@ static const char MENU_SETUP_L4[] PROGMEM			= "PREV NEXT ENTER BACK";
 static const char MENU_EDIT_CAM_L1[] PROGMEM		= "Enter parameter     ";
 static const char MENU_EDIT_CAM_L2[] PROGMEM		= "                    ";
 static const char MENU_EDIT_CAM_L3[] PROGMEM		= "                    ";
-static const char MENU_EDIT_CAM_L4[] PROGMEM		= "NEXT UP   DOWN  BACK";
+static const char MENU_EDIT_CAM_L4[] PROGMEM		= "DOWN UP   NEXT  BACK";
 
 static const char MENU_STORE_L1[] PROGMEM			= "Store               ";
 static const char MENU_STORE_L2[] PROGMEM			= "Choose store to save";
@@ -46,7 +47,7 @@ static const char MENU_CLEAR_L2[] PROGMEM			= "Choose store        ";
 static const char MENU_CLEAR_L3[] PROGMEM			= "                    ";
 static const char MENU_CLEAR_L4[] PROGMEM			= "ALL            ABORT";
 
-static const char MENU_GENERAL_SETUP_L1[] PROGMEM	= "Choose setup menu   ";
+static const char MENU_GENERAL_SETUP_L1[] PROGMEM	= "Choose menu option  ";
 static const char MENU_GENERAL_SETUP_L2[] PROGMEM	= "                    ";
 static const char MENU_GENERAL_SETUP_L3[] PROGMEM	= "                    ";
 static const char MENU_GENERAL_SETUP_L4[] PROGMEM	= "PREV NEXT ENTER BACK";
@@ -91,6 +92,12 @@ static const char MENU_LED_BRIGHTNESS_L2[] PROGMEM  = "                    ";
 static const char MENU_LED_BRIGHTNESS_L3[] PROGMEM  = "                    ";
 static const char MENU_LED_BRIGHTNESS_L4[] PROGMEM  = "UP  DOWN        BACK";
 
+
+static const char MENU_BMMCC_L1[] PROGMEM  = "BMMCC setup         ";
+static const char MENU_BMMCC_L2[] PROGMEM  = "                    ";
+static const char MENU_BMMCC_L3[] PROGMEM  = "                    ";
+static const char MENU_BMMCC_L4[] PROGMEM  = "DOWN UP   NEXT  BACK";
+
 //Define the menu structure
 __flash const menu_t menues[] =
 { 	
@@ -109,7 +116,7 @@ __flash const menu_t menues[] =
 		.cb    = { NULL,NULL,NULL,NULL,NULL},
 		.cb_r=   { NULL,NULL,NULL,NULL,NULL},
 		.init  = main_init,
-		.cyclic = NULL,
+        .cyclic = main_run,
 		.rotary= NULL //the main menu uses the rotary encoder, but it's initialised in the main_init
 	},
 	{ //MENU_SETUP
@@ -124,7 +131,7 @@ __flash const menu_t menues[] =
 	{ //MENU_EDIT_CAM
 		.lines = { MENU_EDIT_CAM_L1,MENU_EDIT_CAM_L2,MENU_EDIT_CAM_L3,MENU_EDIT_CAM_L4},
 		.next  = { MENU_INVALID,MENU_INVALID,MENU_INVALID,MENU_SETUP,MENU_SETUP},
-		.cb    = { param_next,param_up, param_down, NULL,NULL},
+		.cb    = { param_down,param_up, param_next, NULL,NULL},
 		.cb_r=   { NULL,NULL,NULL,NULL,NULL},
 		.init  = param_show,
 		.cyclic = NULL,
@@ -228,7 +235,16 @@ __flash const menu_t menues[] =
 		.init  = NULL,
 		.cyclic = NULL,
 		.rotary= NULL
-	} 
+	}  ,
+    { //MENU_BMMCC
+        .lines = { MENU_BMMCC_L1,MENU_BMMCC_L2,MENU_BMMCC_L3,MENU_BMMCC_L4},
+        .next  = { MENU_INVALID,MENU_INVALID,MENU_INVALID,MENU_GENERAL_SETUP,MENU_INVALID},
+        .cb    = { menu_bmmcc_down,menu_bmmcc_up,menu_bmmcc_next,NULL,NULL},
+        .cb_r=   { NULL,NULL,NULL,NULL,NULL},
+        .init  = menu_bmmcc_init,
+        .cyclic = NULL,
+        .rotary= NULL
+    }
 };
 
 menu_identifiers active_menu;

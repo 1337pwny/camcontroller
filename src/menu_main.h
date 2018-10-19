@@ -3,5 +3,6 @@
 
 	void main_init(void);
 	void main_show(void);
+    void main_run(void);
 
 #endif

@@ -37,7 +37,11 @@ setting_menu_t setting_menues[] = {
 	{
 		.menu = MENU_RESET,
 		.description = "Reset settings      "
-	}
+    },
+    {
+        .menu = MENU_BMMCC,
+        .description = "BMMCC settings      "
+    }
 };
 
 
